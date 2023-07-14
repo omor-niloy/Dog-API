@@ -1,83 +1,33 @@
-from django.shortcuts import render
+from rest_framework import generics
+from .models import Dog , Breed
+from .serializers import DogSerializer , BreedSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-# Create your views here.
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
-from dogapp.models import Dog, Breed
-from dogapp.serializers import DogSerializer, BreedSerializer
+class ApiRoot(APIView):
+    def get(self,request, format=None):
+        return Response({
+            'Intro': "Hi! Welcome to the Dog API!",
+            'Creator': "2010376103",
+            'dogs': reverse('dog-list', request=request, format=format),
+            'breeds': reverse('breed-list', request=request, format=format)
+        })
 
-@csrf_exempt
-def api_list(request): 
-    if request.method == 'GET':
-        apivar = Dog.objects.all()
-        serializer = DogSerializer(apivar, many=True)
-        return JsonResponse(serializer.data, safe=False)
+class AllBreed(generics.ListCreateAPIView) :
+    queryset=Breed.objects.all()
+    serializer_class = BreedSerializer
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = DogSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+class SingleBreed(generics.RetrieveUpdateDestroyAPIView) :
+    queryset=Breed.objects.all()
+    serializer_class = BreedSerializer
 
-def api_listB(request): 
-    if request.method == 'GET':
-        apivar = Breed.objects.all()
-        serializer = BreedSerializer(apivar, many=True)
-        return JsonResponse(serializer.data, safe=False)
+class AllDog(generics.ListCreateAPIView) :
+    queryset=Dog.objects.all()
+    serializer_class = DogSerializer
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = BreedSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
-
-
-@csrf_exempt
-def api_detail(request, pk):
-    try:
-        dvar = Dog.objects.get(pk=pk)
-    except Dog.DoesNotExist:
-        return HttpResponse(status=404)
-
-    if request.method == 'GET':
-        serializer = DogSerializer(dvar)
-        return JsonResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = DogSerializer(dvar, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        dvar.delete()
-        return HttpResponse(status=204)
-
-def api_detailB(request, pk):
-    try:
-        dvar = Breed.objects.get(pk=pk)
-    except Breed.DoesNotExist:
-        return HttpResponse(status=404)
-
-    if request.method == 'GET':
-        serializer = BreedSerializer(dvar)
-        return JsonResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = BreedSerializer(dvar, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        dvar.delete()
-        return HttpResponse(status=204)
+class SingleDog(generics.RetrieveUpdateDestroyAPIView) :
+    queryset=Dog.objects.all()
+    serializer_class = DogSerializer
