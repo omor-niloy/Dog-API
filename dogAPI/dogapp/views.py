@@ -25,6 +25,8 @@ class SingleBreed(generics.RetrieveUpdateDestroyAPIView) :
 class AllDog(generics.ListCreateAPIView) :
     queryset=Dog.objects.all()
     serializer_class = DogSerializer
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
